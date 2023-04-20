@@ -32,18 +32,18 @@ class LoadFile(BaseView):
 
 class WaistMeasurementView(BaseView):
 
-    def get(self,request):
-        self.validate_field_in_params(request.GET,["height","weight","age"])
+    def post(self,request):
+        self.validate_field_in_params(request.data,["height","weight","age"])
 
         try:
             user_profile = get_userprofile(user=request.user)
         except ObjectDoesNotExist:
             return api_error_response(error_message="User Profile does not exist for requested use")
 
-        _param_dict = request.GET
-        _param_dict = {key: float(value) for key,value in _param_dict.items()}
+        request_data = request.data
+        request_data = {key: float(value) for key,value in request_data.items() if key in ["height","weight","age"]}
         try:
-            instance = get_measurementrecord(height=_param_dict["height"],weight=_param_dict["weight"],age=_param_dict["age"])
+            instance = get_measurementrecord(height=request_data["height"],weight=request_data["weight"],age=request_data["age"])
             waist_measurement = instance.waist
             is_waist_measurement_available = True
         except ObjectDoesNotExist:
