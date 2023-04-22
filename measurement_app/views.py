@@ -1,7 +1,7 @@
 from utils.base_view import BaseView
 import pandas as pd
 import json
-from measurement_app.db_api import (create_measurementrecord,get_measurementrecord)
+from measurement_app.db_api import (create_measurementrecord,get_measurementrecord,filter_measurementrecord)
 from django.core.exceptions import ObjectDoesNotExist
 from utils.helpers import (update_db_object,api_success_response,api_error_response)
 from accounts.db_api import (get_userprofile,)
@@ -42,11 +42,13 @@ class WaistMeasurementView(BaseView):
 
         request_data = request.data
         request_data = {key: float(value) for key,value in request_data.items() if key in ["height","weight","age"]}
-        try:
-            instance = get_measurementrecord(height=request_data["height"],weight=request_data["weight"],age=request_data["age"])
+        
+        instance = filter_measurementrecord(height=request_data["height"],weight=request_data["weight"],age=request_data["age"]).last()
+        
+        if instance:
             waist_measurement = instance.waist
             is_waist_measurement_available = True
-        except ObjectDoesNotExist:
+        else:
             is_waist_measurement_available = False
             waist_measurement = 0
         
@@ -59,18 +61,22 @@ class WaistMeasurementView(BaseView):
         },message="Waist Measurement")
 
     def patch(self,request):
-        self.validate_field_in_params(request.data,["waist_measurement"])
-        self.validate_field_in_params(request.GET,["height","weight","age"])
+        self.validate_field_in_params(request.data,["height","weight","age","waist_measurement"])
         try:
             user_profile = get_userprofile(user=request.user)
         except ObjectDoesNotExist:
             return api_error_response(error_message="User Profile does not exist for requested use")
 
         request_data = request.data
-
+        record_data = {
+            "height": float(request_data["height"]),
+            "weight":float(request_data["weight"]),
+            "age": float(request_data["age"]),
+            "waist": float(request_data["waist_measurement"])
+        }
         try:
-            update_db_object(user_profile,request_data)
-            create_measurementrecord(**request.GET)
+            update_db_object(user_profile,{"waist_measurement":float(request_data["waist_measurement"])})
+            create_measurementrecord(**record_data)
         except Exception as e:
             return api_error_response(error_message=str(e))
 

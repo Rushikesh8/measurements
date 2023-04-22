@@ -28,7 +28,7 @@ class SignInView(BaseView):
 class GetTokenView(BaseView):
     permission_classes=(AllowAny,)
 
-    def get(self,request):
+    def post(self,request):
         self.validate_field_in_params(request.data,["username","password"])
 
         try:

@@ -24,8 +24,11 @@ SECRET_KEY = 'django-insecure-%55as8v_hk$64+$s6^2dheyyd-^%jf8(r6fj_kf@2b1fx83ikp
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+import os
+if os.getcwd() == '/app':
+    DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,7 +43,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     "accounts",
-    "measurement_app"
+    "measurement_app",
+    "corsheaders"
 ]
 
 MIDDLEWARE = [
@@ -51,6 +55,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'measurements.urls'
@@ -138,3 +143,7 @@ REST_FRAMEWORK = {
                 'rest_framework.permissions.IsAuthenticated',
     ),
 }
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = (
+  'http://localhost:7000',
+)
